@@ -4,15 +4,19 @@ import com.project1.firstapi.Category.Category;
 import com.project1.firstapi.Category.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.springframework.http.HttpStatus.CREATED;
+
 @RestController
 @RequestMapping("/rest/products")
 @RequiredArgsConstructor
 public class ProductController {
+
     private final ProductMapper productMapper;
     private final ProductServiceImpl productService;
     private final CategoryRepository categoryRepository;
@@ -25,6 +29,7 @@ public class ProductController {
                 .collect(Collectors.toList());
 
     }
+
     @GetMapping("/categories/{categoryId}")
     public ResponseEntity<List<ProductDto>> getProductsByCategory(@PathVariable Long categoryId) {
         Category category = categoryRepository.findById(categoryId)
@@ -35,6 +40,18 @@ public class ProductController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(products);
     }
+
+    @GetMapping(params = {"category"})
+    public List<ProductDto> getProductsByCategoryName(@RequestParam String category) {
+        Category foundCategory = categoryRepository.findByName(category)
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+        return productService.getProductsByCategory(foundCategory)
+                .stream()
+                .map(productMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+
 
     @PostMapping
     public ResponseEntity<Product> createProduct(@RequestBody ProductRequest productRequest) {
@@ -47,5 +64,18 @@ public class ProductController {
         return ResponseEntity.ok(savedProduct);
     }
 
-
+    @PostMapping("/add")
+    @ResponseStatus(CREATED)
+    public ProductDto createNewProduct(@RequestBody @Validated ProductCreationRequest productCreationRequest) {
+        Category category = categoryRepository.findById(productCreationRequest.getCategory().getId())
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+        Product newProduct = new Product(
+                productCreationRequest.getModel(),
+                productCreationRequest.getPrice(),
+                productCreationRequest.getMaterial(),
+                category
+        );
+        Product savedProduct = productService.saveProduct(newProduct);
+        return productMapper.toDto(savedProduct);
+    }
 }
