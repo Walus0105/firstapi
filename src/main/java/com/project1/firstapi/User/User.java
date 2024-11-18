@@ -1,79 +1,77 @@
 package com.project1.firstapi.User;
 
+import com.project1.firstapi.Role.Role;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
+import lombok.Builder;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Collection;
+
 
 @Entity
 @Table(name = "users")
 @Getter
 @NoArgsConstructor
 @ToString
+@AllArgsConstructor
+@Builder
 public class User {
+    @Setter
+    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
 
+    @Setter
+    @Getter
     @Column(name = "name", nullable = false)
     private String name;
 
+    @Setter
+    @Getter
     @Column(name = "surname", nullable = false)
     private String surname;
 
+    @Setter
+    @Getter
     @Column(name = "email", nullable = false)
     private String email;
 
+    @Setter
+    @Getter
     @Column(name = "contact_number", nullable = false)
     private String contact_number;
 
-    public Long getId() {
-        return id;
+    @Setter
+    @Getter
+    @Column(name = "password", nullable = false)
+    private String password = "default_password";
+
+    @ManyToMany
+    @JoinTable(
+            name = "users_roles",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
+
+
+    private Collection<Role> roles;
+
+
+    public Collection<Role> getRoles() { return roles; }
+
+    public void setRoles(Collection<Role> roles) {
+        this.roles = roles;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSurname() {
-        return surname;
-    }
-
-    public void setSurname(String surname) {
-        this.surname = surname;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getContact_number() {
-        return contact_number;
-    }
-
-    public void setContact_number(String contact_number) {
-        this.contact_number = contact_number;
-    }
-
-    public User(String name, String surname, String email, String contact_number) {
+    public User(String name, String surname, String email, String contact_number, String password) {
         this.name = name;
         this.surname = surname;
         this.email = email;
         this.contact_number = contact_number;
+        this.password = password;
     }
 
 }
+

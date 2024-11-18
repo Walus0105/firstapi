@@ -10,4 +10,8 @@ public interface ProductService {
     List<Product> getProductsByCategory(Category category);
 
     Product saveProduct(Product product);
+
+    Product updateProduct(Long id, ProductUpdateRequest productUpdateRequest);
+
+    void deleteById(Long id);
 }

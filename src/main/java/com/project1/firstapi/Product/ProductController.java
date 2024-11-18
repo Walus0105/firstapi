@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
 @RequestMapping("/rest/products")
@@ -29,6 +30,37 @@ public class ProductController {
                 .collect(Collectors.toList());
 
     }
+
+    @GetMapping(path = "{id}")
+    public ResponseEntity<ProductDto> getProductById(@PathVariable("id") Long id) {
+        Product product = productService.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+                return ResponseEntity.ok(productMapper.toDto(product));
+    }
+
+    @PatchMapping(path = "{id}")
+    public ResponseEntity<ProductDto> updateProduct(
+            @PathVariable("id") Long id,
+            @RequestBody ProductUpdateRequest productUpdateRequest) {
+        Product existingProduct = productService.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        existingProduct.setModel(productUpdateRequest.getModel());
+        existingProduct.setPrice(productUpdateRequest.getPrice());
+        existingProduct.setMaterial(productUpdateRequest.getMaterial());
+        existingProduct.setCategory(productUpdateRequest.getCategory());
+
+        Product updatedProduct = productService.saveProduct(existingProduct);
+        return ResponseEntity.ok(productMapper.toDto(updatedProduct));
+    }
+
+    @DeleteMapping(path = "{id}")
+    @ResponseStatus(NO_CONTENT)
+    public void deleteProduct(@PathVariable("id") Long id) {
+        productService.deleteById(id);
+    }
+
+
 
     @GetMapping("/categories/{categoryId}")
     public ResponseEntity<List<ProductDto>> getProductsByCategory(@PathVariable Long categoryId) {
@@ -63,6 +95,8 @@ public class ProductController {
         Product savedProduct = productService.saveProduct(new_product);
         return ResponseEntity.ok(savedProduct);
     }
+
+
 
     @PostMapping("/add")
     @ResponseStatus(CREATED)
